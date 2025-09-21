@@ -1,52 +1,64 @@
 
 const TELEGRAM = "https://t.me/merxio_manager";
 
+/* ---------- utils ---------- */
+const qs = (s,root=document)=>root.querySelector(s);
+const qsa = (s,root=document)=>Array.from(root.querySelectorAll(s));
+const euro = n => new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(n);
+
 async function loadProducts(){
   const res = await fetch('data/products.json', {cache:'no-store'});
   return await res.json();
 }
 
-const euro = n => new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(n);
+function slugify(s){
+  return (s||'').toString().toLowerCase()
+    .replace(/[^\w]+/g,'-').replace(/^-+|-+$/g,'');
+}
 
+/* ---------- cards ---------- */
 function makeCard(p){
-  const el=document.createElement('article');
-  el.className='card reveal';
-  const img=(p.images&&p.images[0])?p.images[0]:'images/hero.jpg';
-  el.innerHTML=`
-    <img src="${img}" alt="${p.title}">
-    <div class="body">
-      <div class="title">${p.title}</div>
-      <div class="meta">${(p.materials||[]).join(' / ')}</div>
-      <div class="row">
-        <span>${euro(p.price)}</span>
-        <a class="cta" href="product.html?id=${encodeURIComponent(p.id)}">View</a>
+  const el = document.createElement('article');
+  el.className = 'card reveal' + (p.in_stock===false ? ' oos' : '');
+  const img = (p.images && p.images[0]) ? p.images[0] : 'images/hero.jpg';
+  const mats = (p.materials && p.materials.length) ? p.materials.join(' / ') : 'wool / acrylic';
+  const size = p.size ? `${p.size}` : '';
+  const id = p.id || slugify(p.title);
+
+  el.innerHTML = `
+    <div class="card-media">
+      <img src="${img}" alt="${p.title}">
+      <div class="badges">
+        ${size ? `<span class="badge size">${size}</span>` : ''}
+        ${p.in_stock===false ? `<span class="badge oos">Sold out</span>` : ''}
       </div>
+    </div>
+    <div class="card-body">
+      <div class="title">${p.title}</div>
+      <div class="meta">${mats}</div>
+      <div class="price">${euro(p.price||0)}</div>
+      <a class="cta ghost" href="product.html?id=${encodeURIComponent(id)}">View</a>
     </div>`;
   return el;
 }
 
-function applyReveals(){
-  const io=new IntersectionObserver((en)=>{
-    en.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  },{threshold:.15});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-}
-
+/* ---------- render catalog ---------- */
 async function renderCatalog(){
-  const wrap=document.getElementById('catalog-grid'); if(!wrap) return;
-  const items=await loadProducts();
-  const shapeSel=document.getElementById('f-shape');
-  const sizeSel=document.getElementById('f-size');
+  const wrap = qs('#catalog-grid'); if(!wrap) return;
+  const items = await loadProducts();
 
-  function pass(p){
-    let ok=true;
-    if(shapeSel && shapeSel.value && p.shape!==shapeSel.value) ok=false;
-    if(sizeSel && sizeSel.value && p.size!==sizeSel.value) ok=false;
-    return ok;
-  }
+  const shapeSel = qs('#f-shape');
+  const sizeSel = qs('#f-size');
+
+  const pass = p => {
+    const sOk = !shapeSel || !shapeSel.value || p.shape === shapeSel.value;
+    const zOk = !sizeSel || !sizeSel.value || (p.size && p.size === sizeSel.value);
+    return sOk && zOk;
+  };
+
   function draw(){
-    wrap.innerHTML='';
-    items.filter(pass).forEach(p=>wrap.appendChild(makeCard(p)));
+    wrap.innerHTML = '';
+    items.filter(pass).forEach(p => wrap.appendChild(makeCard(p)));
     applyReveals();
   }
   shapeSel && shapeSel.addEventListener('change', draw);
@@ -54,41 +66,63 @@ async function renderCatalog(){
   draw();
 }
 
-async function renderFeatured(){
-  const wrap=document.getElementById('featured-grid'); if(!wrap) return;
-  const items=await loadProducts();
-  wrap.innerHTML='';
-  items.filter(p=>p.featured).slice(0,6).forEach(p=>wrap.appendChild(makeCard(p)));
-  applyReveals();
+/* ---------- render product page ---------- */
+function getQueryParam(name){
+  return new URLSearchParams(location.search).get(name);
 }
 
 async function renderProduct(){
-  const params=new URLSearchParams(location.search);
-  const id=params.get('id'); if(!id) return;
-  const items=await loadProducts();
-  const p=items.find(x=>x.id===id); if(!p) return;
+  const gallery = qs('#gallery'); if(!gallery) return;
+  const items = await loadProducts();
+  const id = getQueryParam('id');
+  const prod = items.find(p => (p.id && p.id===id) || slugify(p.title)===id) || items[0];
 
-  document.querySelector('[data-p-title]').textContent=p.title;
-  document.querySelector('[data-p-meta]').textContent=`${(p.materials||[]).join(' / ')} · Handmade`;
-
-  const g=document.getElementById('gallery'); g.innerHTML='';
-  (p.images||[]).forEach(src=>{
-    const a=document.createElement('a'); a.href='#'; a.onclick=(e)=>{e.preventDefault(); openLightbox(src)};
-    const i=document.createElement('img'); i.src=src; i.alt=p.title;
-    a.appendChild(i); g.appendChild(a);
+  // gallery
+  gallery.innerHTML = '';
+  (prod.images||[]).forEach(src=>{
+    const a = document.createElement('a');
+    a.href = src; a.dataset.lightbox='p';
+    const img = document.createElement('img'); img.src = src; img.alt = prod.title;
+    a.appendChild(img); gallery.appendChild(a);
   });
 
-  const priceEl=document.querySelector('[data-p-price]');
-  const sizeSel=document.getElementById('p-size');
-  const base=p.price;
-  const map={'Ø120':1,'120×170':1.2,'140×200':1.4,'160×230':1.6};
-  function upd(){ const k=map[sizeSel.value]||1; priceEl.textContent=euro(Math.round(base*k)); }
-  sizeSel.value=p.size || '120×170'; upd(); sizeSel.addEventListener('change', upd);
+  // text
+  qs('[data-p-title]') && (qs('[data-p-title]').textContent = prod.title);
+  const mats = (prod.materials && prod.materials.length) ? prod.materials.join(' / ') : 'wool / acrylic';
+  qs('[data-p-meta]') && (qs('[data-p-meta]').textContent = mats);
 
-  document.querySelectorAll('[data-telegram]').forEach(a=> a.href=TELEGRAM);
+  // price by size
+  const priceEl = qs('[data-p-price]');
+  const sizeSel = qs('#p-size');
+  const base = prod.price || 0;
+  const map = {'Ø120':1,'120×170':1.2,'140×200':1.4,'160×230':1.6};
+  function upd(){ const k = map[sizeSel.value]||1; priceEl.textContent=euro(Math.round(base*k)); }
+  if(sizeSel && priceEl){ sizeSel.value = prod.size || '120×170'; upd(); sizeSel.addEventListener('change', upd); }
+
+  // telegram
+  qsa('[data-telegram]').forEach(a => a.href = TELEGRAM);
 }
 
+/* ---------- featured on home ---------- */
+async function renderFeatured(){
+  const wrap = qs('#featured-grid'); if(!wrap) return;
+  const items = await loadProducts();
+  wrap.innerHTML = '';
+  items.filter(p=>p.featured).slice(0,6).forEach(p => wrap.appendChild(makeCard(p)));
+  applyReveals();
+}
+
+/* ---------- reveals ---------- */
+function applyReveals(){
+  const els = qsa('.reveal');
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target);} });
+  },{threshold:.15});
+  els.forEach(el=>obs.observe(el));
+}
+
+/* ---------- boot ---------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  document.querySelectorAll('[data-telegram]').forEach(a=> a.href=TELEGRAM);
+  qsa('[data-telegram]').forEach(a => a.href = TELEGRAM);
   renderFeatured(); renderCatalog(); renderProduct(); applyReveals();
 });
