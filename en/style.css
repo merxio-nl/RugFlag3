@@ -41,3 +41,44 @@ h1{font-size:46px;line-height:1.04;margin:0 0 10px}h2{font-size:28px;margin:0 0 
 .card-body .meta{grid-area:m;color:var(--muted);font-size:14px}
 .card-body .price{grid-area:p;font-weight:600}
 .card-body .cta.ghost{grid-area:v;padding:8px 14px;border-radius:999px;border:1px solid #111}
+
+
+/* ===== Dark theme support ===== */
+:root{
+  --bg:#fafafa; --surface:#fff; --text:#0f0f0f; --muted:#6b7280; --border:#e7e7ec;
+}
+html[data-theme="dark"]{
+  --bg:#0b0b0b; --surface:#111111; --text:#f5f5f5; --muted:#a1a1aa; --border:#222222;
+}
+html[data-theme="dark"] body{background:var(--bg); color:var(--text)}
+html[data-theme="dark"] .header{background:rgba(0,0,0,.65); border-bottom:1px solid var(--border)}
+html[data-theme="dark"] .menu a:hover{background:#151515}
+html[data-theme="dark"] .hero .media{background:#0f0f0f; border-color:var(--border)}
+html[data-theme="dark"] .section{border-top:1px solid var(--border)}
+html[data-theme="dark"] .card{background:var(--surface); border-color:var(--border)}
+html[data-theme="dark"] .footer{border-top:1px solid var(--border)}
+
+/* buttons */
+html[data-theme="dark"] .cta{border-color:#f5f5f5; color:#f5f5f5}
+html[data-theme="dark"] .cta.primary{background:#f5f5f5; color:#111}
+html[data-theme="dark"] .cta.primary:hover{filter:brightness(.95)}
+html[data-theme="dark"] .cta.ghost{border-color:#f5f5f5; color:#f5f5f5}
+
+/* badges */
+html[data-theme="dark"] .badge{background:rgba(255,255,255,.16); color:#fff}
+html[data-theme="dark"] .badge.oos{background:rgba(255,255,255,.13)}
+
+/* floating Telegram button contrast */
+html[data-theme="dark"] .float-telegram{background:#f5f5f5; color:#111; border-color:#f5f5f5}
+
+/* theme toggle */
+.theme-toggle{position:fixed; right:16px; bottom:16px; z-index:99; display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text);
+  box-shadow:0 6px 18px rgba(0,0,0,.08); cursor:pointer; user-select:none; font-size:14px}
+.theme-toggle input{appearance:none; width:34px; height:18px; border-radius:999px; background:#d1d5db; position:relative; outline:none; border:1px solid var(--border)}
+.theme-toggle input::after{content:""; position:absolute; top:50%; left:2px; width:14px; height:14px; transform:translateY(-50%); border-radius:999px; background:#fff; transition:all .2s}
+.theme-toggle input:checked{background:#111}
+.theme-toggle input:checked::after{left:18px; background:#fff}
+html[data-theme="dark"] .theme-toggle input{background:#444}
+html[data-theme="dark"] .theme-toggle input:checked{background:#f5f5f5}
+html[data-theme="dark"] .theme-toggle input:checked::after{background:#111}

@@ -126,3 +126,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
   qsa('[data-telegram]').forEach(a => a.href = TELEGRAM);
   renderFeatured(); renderCatalog(); renderProduct(); applyReveals();
 });
+
+
+/* --- theme toggle --- */
+(function(){
+  const key='rf-theme';
+  const saved = localStorage.getItem(key);
+  if(saved) document.documentElement.setAttribute('data-theme', saved);
+  function setTheme(t){ document.documentElement.setAttribute('data-theme', t); localStorage.setItem(key, t); }
+  function current(){ return document.documentElement.getAttribute('data-theme') || 'light'; }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const el = document.createElement('button');
+    el.className='theme-toggle';
+    el.innerHTML = `<span>Dark</span><input type="checkbox" aria-label="Toggle dark mode">`;
+    const sw = el.querySelector('input');
+    sw.checked = current()==='dark';
+    sw.addEventListener('change', ()=> setTheme(sw.checked ? 'dark' : 'light'));
+    document.body.appendChild(el);
+  });
+})();
+
