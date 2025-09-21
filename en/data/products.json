@@ -169,6 +169,7 @@
       "assets/products/æhick/æhick-3.jpg",
       "assets/products/æhick/æhick-4.jpg"
     ],
-    "featured": false
+    "featured": false,
+    "in_stock": false
   }
 ]
