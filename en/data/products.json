@@ -58,25 +58,8 @@
     "featured": true
   },
   {
-    "id": "homer-simpson-2",
-    "title": "Homer Simpson 2",
-    "price": 320,
-    "currency": "EUR",
-    "size": "120×170",
-    "shape": "rectangle",
-    "materials": [
-      "wool",
-      "acrylic"
-    ],
-    "images": [
-      "assets/products/homer-simpson-2/homer-simpson-2-1.jpg",
-      "assets/products/homer-simpson-2/homer-simpson-2-2.jpg"
-    ],
-    "featured": true
-  },
-  {
     "id": "homer-simpson-smal",
-    "title": "Homer Simpson Smal",
+    "title": "Homer Simpson Small",
     "price": 260,
     "currency": "EUR",
     "size": "160×230",
@@ -171,7 +154,7 @@
   },
   {
     "id": "æhick",
-    "title": "æhick",
+    "title": "chick",
     "price": 300,
     "currency": "EUR",
     "size": "120×170",
