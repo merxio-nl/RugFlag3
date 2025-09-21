@@ -113,7 +113,8 @@
       "assets/products/martial-artists/martial-artists-4.jpg",
       "assets/products/martial-artists/martial-artists-5.jpg"
     ],
-    "featured": false
+    "featured": false,
+    "in_stock": false
   },
   {
     "id": "plankton",
